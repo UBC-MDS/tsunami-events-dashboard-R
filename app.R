@@ -112,21 +112,6 @@ app$layout(dbcContainer(
   )
 
 
-# App callback for navbar
-app$callback(
-  output('navbar-collapse', 'is_open'),
-  list(
-    input('navbar-toggler', 'n_clicks'),
-    state('navbar-collapse', 'is_open')
-  ),
-  function(n, is_open) {
-    if (n>0) {
-      return(!is_open)
-    }
-    return(is_open)
-  }
-)
-
 #App callback for world_map_plot
 app$callback(
   output('map_plot', 'figure'),
