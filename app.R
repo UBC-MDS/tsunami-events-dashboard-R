@@ -4,12 +4,12 @@ library(devtools) # contains dashBootstrapComponents
 library(purrr)
 library(plotly)
 library(ggplot2)
+library(dplyr)
 
 tsunami_df = read.csv('data/processed/tsunami-events.csv')
 
 years = unique(tsunami_df[['year']])
-countries = unique(tsunami_df[['country']])
-country_list=list(sort(countries))
+countries = sort(unique(tsunami_df[['country']]))
 
 app = Dash$new(external_stylesheets = dbcThemes$QUARTZ)
 
@@ -39,24 +39,24 @@ navbar = dbcNavbar(
 
 world_plot_card <- dbcCard(
   dbcCardBody(list(
-    htmlH6('Total Tsunami Hits by Country with Origin Points'),
-    dccGraph(id = 'map_plot')
+    htmlH6('Total Tsunami Hits by Country with Origin Points')
+    # dccGraph(id = 'map_plot')
     )
   )
   )
 
 scatter_plot_card <- dbcCard(
   dbcCardBody(list(
-    htmlH6('Total Deaths and Earthquake Magnitude per Event'),
-    dccGraph(id = 'scatter_plot')
+    htmlH6('Total Deaths and Earthquake Magnitude per Event')
+    # dccGraph(id = 'scatter_plot')
   )
   )
 )
 
 bar_chart_card <- dbcCard(
   dbcCardBody(list(
-    htmlH6('10 Most Intense Tsunamis by Country'),
-    dccGraph(id = 'bar_chart')
+    htmlH6('10 Most Intense Tsunamis by Country')
+    # dccGraph(id = 'bar_chart')
   )
   )
 )
@@ -84,21 +84,14 @@ app$layout(dbcContainer(
           "2022" = "2022")),
       htmlBr(),
       htmlBr(),
-      htmlH6('Countries of Interest', className='form-label')
-      # dccDropdown(
-      #   id = 'country_select',
-      #   multi = TRUE,
-      #   value = list(),
-      #   options = country_list %>%
-      #               purrr::map(function(country) list(label = country, value = country)),
-      #               className = 'text-dark')
-    ),
-    style = list(
-      color = 'black',
-      textAlign = 'center'
-      # backgroundcolor = 'rgba(255,255,255,.25)'
-    )
-    ),
+      htmlH6('Countries of Interest', className='form-label'),
+      dccDropdown(
+        id = 'country_select',
+        multi = TRUE,
+        value = list('Japan', 'Indonesia'),
+        options = countries,
+        className = 'text-dark')
+      )),
     dbcCol(list(
       world_plot_card,
       htmlBr(),
@@ -106,39 +99,38 @@ app$layout(dbcContainer(
       dbcRow(list(
         scatter_plot_card,
         bar_chart_card
-      )
-          ))))
-  )))  
-  )
+      ))))
+    ))
+)))
 
 
-#App callback for world_map_plot
-app$callback(
-  output('map_plot', 'figure'),
-  list(input('year_slider', 'value'),
-       input('country_select', 'value')),
-  # function() {
-  #   ...
-  # }
-)
-
-#App callback for scatter_plot
-app$callback(
-  output('scatter_plot', 'figure'),
-  list(input('year_slider', 'value'),
-       input('country_select', 'value')),
-  # function() {
-  #   ...
-  # }
-)
-
-#App callback for scatter_plot
-app$callback(
-  output('bar_chart', 'figure'),
-  list(input('year_slider', 'value')),
-  # function() {
-  #   ...
-  # }
-)
+# #App callback for world_map_plot
+# app$callback(
+#   output('map_plot', 'figure'),
+#   list(input('year_slider', 'value'),
+#        input('country_select', 'value')),
+#   # function() {
+#   #   ...
+#   # }
+# )
+# 
+# #App callback for scatter_plot
+# app$callback(
+#   output('scatter_plot', 'figure'),
+#   list(input('year_slider', 'value'),
+#        input('country_select', 'value')),
+#   # function() {
+#   #   ...
+#   # }
+# )
+# 
+# #App callback for scatter_plot
+# app$callback(
+#   output('bar_chart', 'figure'),
+#   list(input('year_slider', 'value')),
+#   # function() {
+#   #   ...
+#   # }
+# )
 
 app$run_server(debug=T)
