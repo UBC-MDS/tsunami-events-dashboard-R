@@ -14,7 +14,7 @@ Our proposal can be found via this link: [proposal](docs/proposal.md)
 
 ## Dashboard Sketch
 
-![dashboard sketch](img/tsunami_sketch.jpg)
+![dashboard sketch](img/tsunami_sketch.png)
 
 ## Accessing the App Locally
 
@@ -29,7 +29,9 @@ Then, run the app:
 
 ## Built with
 
-TODO
+-   [dash](https://dash.plotly.com/r) - Main server and interactive components
+-   [ggplot2](https://ggplot2.tidyverse.org) - Used to generate interactive plots
+-   [dplyr](https://dplyr.tidyverse.org/) - Used for data manipulation and pre-processing
 
 ## Contributing
 
