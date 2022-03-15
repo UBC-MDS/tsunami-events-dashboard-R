@@ -17,7 +17,8 @@ countries <- sort(unique(tsunami_events[['country']]))
 
 app <- Dash$new(external_stylesheets = dbcThemes$QUARTZ)
 
-create_map_plot <- function(year_start, year_end, countries) {
+create_map_plot <- function(year_start, year_end, countries,
+                            magnitude_start, magnitude_end) {
     if (as.integer(year_start) > as.integer(year_end)) {
         stop("Invalid value for year start and/or year end")
     }
@@ -33,7 +34,9 @@ create_map_plot <- function(year_start, year_end, countries) {
     
     tsunami_events <- tsunami_events %>%
         filter(year >= year_start,
-               year <= year_end)
+               year <= year_end,
+               earthquake_magnitude >= magnitude_start,
+               earthquake_magnitude <= magnitude_end)
     
     counts <- tsunami_events %>%
         group_by(country) %>%
@@ -77,7 +80,9 @@ create_map_plot <- function(year_start, year_end, countries) {
                     size = 2, marker = list(size = 2, opacity=0.4, 
                                             color = "red"),
                     text = ~paste("Earthquake Magnitude:",
-                                  earthquake_magnitude),
+                                  earthquake_magnitude,
+                                  "\nEvent Year:",
+                                  year),
                     hoverinfo = "text"
         )
     
@@ -267,7 +272,11 @@ app$callback(
     list(input('year_slider', 'value'),
          input('country_select', 'value')),
     function(years, countries) {
-        create_map_plot(years[1], years[2], countries)
+        create_map_plot(year_start = years[1],
+                        year_end = years[2],
+                        countries = countries,
+                        magnitude_start = 8,
+                        magnitude_end = 9)
     }
 )
 
