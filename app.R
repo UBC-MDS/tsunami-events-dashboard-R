@@ -8,11 +8,11 @@ library(dash)
 library(dashHtmlComponents)
 library(dashBootstrapComponents)
 
+
 tsunami_events = read.csv('data/processed/tsunami-events.csv')
 country_codes <- read.csv("data/processed/country_codes.csv")
 years = unique(tsunami_events[['year']])
 countries = sort(unique(tsunami_events[['country']]))
-
 
 tsunami_events <- read.csv("data/processed/tsunami-events.csv")
 country_codes <- read.csv("data/processed/country_codes.csv")
