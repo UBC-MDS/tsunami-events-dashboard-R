@@ -1,6 +1,7 @@
 library(ggplot2)
 library(RColorBrewer)
 library(dplyr)
+library(readr)
 library(tidyr)
 library(purrr)
 library(plotly)
@@ -8,19 +9,12 @@ library(dash)
 library(dashHtmlComponents)
 library(dashBootstrapComponents)
 
-tsunami_events = read.csv('data/processed/tsunami-events.csv')
+tsunami_events <- read.csv('data/processed/tsunami-events.csv')
 country_codes <- read.csv("data/processed/country_codes.csv")
-years = unique(tsunami_events[['year']])
-countries = sort(unique(tsunami_events[['country']]))
+years <- unique(tsunami_events[['year']])
+countries <- sort(unique(tsunami_events[['country']]))
 
-
-tsunami_events <- read.csv("data/processed/tsunami-events.csv")
-country_codes <- read.csv("data/processed/country_codes.csv")
-
-years = unique(tsunami_events[['year']])
-countries = sort(unique(tsunami_events[['country']]))
-
-app = Dash$new(external_stylesheets = dbcThemes$QUARTZ)
+app <- Dash$new(external_stylesheets = dbcThemes$QUARTZ)
 
 create_map_plot <- function(year_start, year_end, countries) {
     if (as.integer(year_start) > as.integer(year_end)) {
@@ -193,7 +187,7 @@ scatter_plot_card <- dbcCard(
 bar_chart_card <- dbcCard(
   dbcCardBody(list(
     htmlH6('10 Most Intense Tsunamis by Country')
-    # dccGraph(id = 'bar_chart')
+    dccGraph(id = 'bar_chart')
   )
   )
 )
@@ -255,18 +249,7 @@ app$callback(
     }
 )
 
-# #App callback for bar_plot
-# app$callback(
-#   output('scatter_plot', 'figure'),
-#   list(input('year_slider', 'value'),
-#        input('country_select', 'value')),
-#   # function() {
-#   #   ...
-#   # }
-# )
-# 
-# #App callback for scatter_plot
-
+# App callback for scatter_plot
 app$callback(
     output('scatter_plot', 'figure'),
     list(input('year_slider', 'value'),
@@ -274,6 +257,32 @@ app$callback(
     function(years, countries) {
         create_scatter_plot(years[1], years[2], countries)
     }
+)
+
+# App callback for bar_plot
+app$callback(
+  output('plot_bar', 'figure'),
+  list(input('year_slider', 'value')),
+  function(year_value) {
+    new_df <- tsunami_df %>% subset(year >= year_value[1] & year <= year_value[2])
+    p <- ggplot(new_df[order(-new_df$tsunami_intensity),][1:10,], 
+                aes(label_0 = country,
+                    label = location_name, 
+                    label2 = earthquake_magnitude,
+                    label3 = year,
+                    label4 = month)) +
+      geom_col(aes(x = 1:10,
+                     y = tsunami_intensity,
+                     color = country,
+                      fill = country)) +
+      ylim(0, 12) +
+      xlab('Tsunami Instance') +
+      ylab('Tsunami Intensity') +
+      ggtitle('Top 10 Most Intense Tsunamis') +
+      theme(axis.text.x=element_blank(),
+            axis.ticks.x=element_blank())
+    ggplotly(p)
+  }
 )
 
 app$run_server(host = "0.0.0.0")
