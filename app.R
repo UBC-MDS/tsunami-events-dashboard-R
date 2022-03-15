@@ -1,15 +1,23 @@
 library(dash)
 library(dashHtmlComponents)
-library(devtools) # contains dashBootstrapComponents
+#library(devtools) # contains dashBootstrapComponents
 library(purrr)
 library(plotly)
 library(ggplot2)
 library(dplyr)
 
 tsunami_df = read.csv('data/processed/tsunami-events.csv')
+country_codes <- read.csv("data/processed/country_codes.csv")
 
 years = unique(tsunami_df[['year']])
 countries = sort(unique(tsunami_df[['country']]))
+
+
+tsunami_events <- read.csv("data/processed/tsunami-events.csv")
+country_codes <- read.csv("data/processed/country_codes.csv")
+
+years = unique(tsunami_events[['year']])
+countries = sort(unique(tsunami_events[['country']]))
 
 app = Dash$new(external_stylesheets = dbcThemes$QUARTZ)
 
@@ -47,8 +55,8 @@ world_plot_card <- dbcCard(
 
 scatter_plot_card <- dbcCard(
   dbcCardBody(list(
-    htmlH6('Total Deaths and Earthquake Magnitude per Event')
-    # dccGraph(id = 'scatter_plot')
+    htmlH6('Total Deaths and Earthquake Magnitude per Event'),
+    dccGraph(id = 'scatter_plot')
   )
   )
 )
@@ -114,7 +122,7 @@ app$layout(dbcContainer(
 #   # }
 # )
 # 
-# #App callback for scatter_plot
+# #App callback for bar_plot
 # app$callback(
 #   output('scatter_plot', 'figure'),
 #   list(input('year_slider', 'value'),
@@ -125,12 +133,75 @@ app$layout(dbcContainer(
 # )
 # 
 # #App callback for scatter_plot
-# app$callback(
-#   output('bar_chart', 'figure'),
-#   list(input('year_slider', 'value')),
-#   # function() {
-#   #   ...
-#   # }
-# )
+
+app$callback(
+    output('scatter_plot', 'figure'),
+    list(input('year_slider', 'value'),
+         input('country_select', 'value')),
+    function(years, countries) {
+        create_scatter_plot(years[1], years[2], countries)
+    }
+)
+
+create_scatter_plot <- function(year_start, year_end, countries) {
+    if (as.integer(year_start) > as.integer(year_end)) {
+        stop("Invalid value for year start and/or year end")
+    }
+    
+    if (typeof(countries) != "list") {
+        stop("Invalid value for countries")
+    }
+    
+    if (length(countries) == 0) {
+        countries_subset <- NULL
+        countries_subset <- tsunami_events |>
+            arrange(desc(earthquake_magnitude)) |>
+            pull(country) |>
+            unique() |>
+            head(10)
+        tsunami_events <- tsunami_events %>%
+            filter(country %in% countries_subset)
+    } 
+    else if (length(countries) > 10) {
+        countries_subset <- NULL
+        countries_subset <- tsunami_events |>
+            arrange(desc(earthquake_magnitude)) |>
+            filter(country %in% countries) |>
+            pull(country) |>
+            unique() |>
+            head(10)
+        tsunami_events <- tsunami_events %>%
+            filter(country %in% countries)
+        tsunami_events <- tsunami_events %>%
+            filter(country %in% countries_subset)
+    }
+    else if (length(countries) > 0) {
+        tsunami_events <- tsunami_events %>%
+            filter(country %in% countries)
+    }
+    
+    tsunami_events <- tsunami_events %>%
+        filter(year >= year_start,
+               year <= year_end)
+    
+    p <- ggplot(tsunami_events) +
+        aes(x = earthquake_magnitude,
+            y = total_deaths,
+            color = country) +
+        geom_point() +
+        ggthemes::scale_color_tableau() +
+        theme_bw() +
+        scale_y_log10(
+            breaks = c(1, 10, 100, 1000, 10000, 100000),
+            labels = c("1", "10", "100", "1000", "10000", "100000")
+            
+        ) +
+        labs(
+            x="Earthquake Magnitude (on Richter scale)",
+            y="Total Deaths Recorded per Event \n(log-transformed)"
+        ) +
+        xlim(5.5, 10)
+    ggplotly(p)
+}
 
 app$run_server(debug=T)
