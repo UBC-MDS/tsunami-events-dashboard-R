@@ -5,6 +5,7 @@ library(purrr)
 library(plotly)
 library(ggplot2)
 library(dplyr)
+library(readr)
 
 tsunami_df = read.csv('data/processed/tsunami-events.csv')
 
@@ -124,13 +125,30 @@ app$layout(dbcContainer(
 #   # }
 # )
 # 
-# #App callback for scatter_plot
-# app$callback(
-#   output('bar_chart', 'figure'),
-#   list(input('year_slider', 'value')),
-#   # function() {
-#   #   ...
-#   # }
-# )
+# App callback for bar_plot
+app$callback(
+  output('plot_bar', 'figure'),
+  list(input('year_slider', 'value')),
+  function(year_value) {
+    new_df <- tsunami_df %>% subset(year >= year_value[1] & year <= year_value[2])
+    p <- ggplot(new_df[order(-new_df$tsunami_intensity),][1:10,], 
+                aes(label_0 = country,
+                    label = location_name, 
+                    label2 = earthquake_magnitude,
+                    label3 = year,
+                    label4 = month)) +
+      geom_col(aes(x = 1:10,
+                     y = tsunami_intensity,
+                     color = country,
+                      fill = country)) +
+      ylim(0, 12) +
+      xlab('Tsunami Instance') +
+      ylab('Tsunami Intensity') +
+      ggtitle('Top 10 Most Intense Tsunamis') +
+      theme(axis.text.x=element_blank(),
+            axis.ticks.x=element_blank())
+    ggplotly(p)
+  }
+)
 
 app$run_server(debug=T)
