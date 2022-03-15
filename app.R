@@ -12,6 +12,7 @@ library(dashBootstrapComponents)
 
 tsunami_events <- read.csv('data/processed/tsunami-events.csv')
 country_codes <- read.csv("data/processed/country_codes.csv")
+
 years <- unique(tsunami_events[['year']])
 countries <- sort(unique(tsunami_events[['country']]))
 
@@ -148,22 +149,24 @@ create_scatter_plot <- function(year_start, year_end, countries) {
 create_bar_plot <- function(year_value) {
     new_df <- tsunami_events %>% subset(year >= year_value[1] & year <= year_value[2])
     p <- ggplot(new_df[order(-new_df$tsunami_intensity),][1:10,], 
-                aes(label_0 = country,
-                    label = location_name, 
-                    label2 = earthquake_magnitude,
-                    label3 = year,
-                    label4 = month)) +
-      geom_col(aes(x = 1:10,
-                     y = tsunami_intensity,
-                     color = country,
-                      fill = country)) +
+                aes(x = 1:10,
+                    y = tsunami_intensity,
+                    color = country,
+                    fill = country,
+                    text = (paste("Country:", country,
+                                  "<br>Location:", location_name,
+                                  "<br>Tsunami Intensity:", tsunami_intensity,
+                                  "<br>Earthquake Magnitude:", earthquake_magnitude,
+                                  "<br>Year:", year,
+                                  "<br>Month:", month)))) +
+      geom_col() +
       ylim(0, 12) +
       xlab('Tsunami Instance') +
       ylab('Tsunami Intensity') +
       ggtitle('Top 10 Most Intense Tsunamis') +
       theme(axis.text.x=element_blank(),
             axis.ticks.x=element_blank())
-    ggplotly(p)
+    ggplotly(p, tooltip = 'text')
   }
 
 navbar = dbcNavbar(
