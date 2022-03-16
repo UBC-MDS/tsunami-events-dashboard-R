@@ -18,6 +18,9 @@ countries <- sort(unique(tsunami_events[['country']]))
 
 app <- Dash$new(external_stylesheets = dbcThemes$QUARTZ)
 
+# Creation of plots
+
+# Map Plot
 create_map_plot <- function(year_start, year_end, countries,
                             magnitude_start, magnitude_end) {
     if (as.integer(year_start) > as.integer(year_end)) {
@@ -90,6 +93,7 @@ create_map_plot <- function(year_start, year_end, countries,
     fig
 }
 
+# Scatter Plot
 create_scatter_plot <- function(year_start, year_end, countries) {
     if (as.integer(year_start) > as.integer(year_end)) {
         stop("Invalid value for year start and/or year end")
@@ -151,6 +155,7 @@ create_scatter_plot <- function(year_start, year_end, countries) {
     ggplotly(p)
 }
 
+# Bar Plot
 create_bar_plot <- function(year_value) {
     new_df <- tsunami_events %>% subset(year >= year_value[1] & year <= year_value[2])
     p <- ggplot(new_df[order(-new_df$tsunami_intensity),][1:10,], 
@@ -174,6 +179,7 @@ create_bar_plot <- function(year_value) {
     ggplotly(p, tooltip = 'text')
   }
 
+# Navigation Bar
 navbar = dbcNavbar(
     dbcContainer(
       list(
@@ -198,6 +204,7 @@ navbar = dbcNavbar(
   dark = TRUE
 )
 
+# Cards
 world_plot_card <- dbcCard(
     dbcCardBody(list(
         htmlH6('Total Tsunami Hits by Country with Origin Points'),
@@ -222,52 +229,82 @@ bar_chart_card <- dbcCard(
   )
 )
 
+# Sidebar
+sidebar <- dbcCol(dbcRow(
+    list(
+        htmlH5('Years and Countries Selection', style = list("font" = "Helvetica", "font-size" = "25px", "text-align" = "center")),
+        htmlHr(),
+        htmlH6('Years of Interest (1802 - 2022)',
+               className='form-label'),
+        dccRangeSlider(
+            id = 'year_slider',
+            min=min(tsunami_events$year),
+            max=max(tsunami_events$year),
+            value= list(min(tsunami_events$year),
+                        max(tsunami_events$year)),
+            allowCross=FALSE,
+            marks = list(
+                "1802" = "1802",
+                "1850" = "1850",
+                "1900" = "1900",
+                "1950" = "1950",
+                "2000" = "2000",
+                "2022" = "2022"),
+        ),
+        htmlBr(),
+        htmlBr(),
+        htmlH6('Earthquake Magnitude of Interest',
+               className='form-label'),
+        dccRangeSlider(
+            id = 'magnitude_slider',
+            min=min(tsunami_events$earthquake_magnitude),
+            max=max(tsunami_events$earthquake_magnitude),
+            value= list(min(tsunami_events$earthquake_magnitude),
+                        max(tsunami_events$earthquake_magnitude)),
+            allowCross=FALSE,
+            marks = list(
+                "4" = "4",
+                "5" = "5",
+                "6" = "6",
+                "7" = "7",
+                "8" = "8",
+                "9" = "9",
+                "9.5" = "9.5"),
+        ),
+        htmlBr(),
+        htmlBr(),
+        htmlH6('Countries of Interest', className='form-label'),
+        dccDropdown(
+            id = 'country_select',
+            multi = TRUE,
+            value = list(),
+            options = countries,
+            className = 'text-dark')
+        ))
+)
+
+# Card Arrangement
+
+cards <- dbcRow(
+    list(
+        world_plot_card,
+        dbcCol(list(
+            scatter_plot_card,
+            bar_chart_card
+        ))
+    )
+)
+            
 app$layout(dbcContainer(
     list(
         navbar,
-        dbcRow(list(
-            dbcCol(list(
-                htmlH5('Years and Countries Selection', className='form-label'),
-                htmlHr(),
-                htmlH6('Years of Interest (1802 - 2022)',
-                       className='form-label'),
-                dccRangeSlider(
-                    id = 'year_slider',
-                    min=min(tsunami_events$year),
-                    max=max(tsunami_events$year),
-                    value= list(min(tsunami_events$year),
-                                max(tsunami_events$year)),
-                    allowCross=FALSE,
-                    marks = list(
-                        "1802" = "1802",
-                        "1850" = "1850",
-                        "1900" = "1900",
-                        "1950" = "1950",
-                        "2000" = "2000",
-                        "2022" = "2022"),
-                ),
-                htmlBr(),
-                htmlBr(),
-                htmlH6('Countries of Interest', className='form-label'),
-                dccDropdown(
-                    id = 'country_select',
-                    multi = TRUE,
-                    value = list(),
-                    options = countries,
-                    className = 'text-dark')
-            ), width = 4),
-            dbcCol(list(
-                world_plot_card,
-                htmlBr(),
-                htmlBr(),
-                dbcRow(list(
-                    scatter_plot_card,
-                    bar_chart_card
-                ))
-            ), width = 8)
+        dbcRow(
+            list(
+                dbcCol(sidebar, width=3),
+                dbcCol(cards, width=9)
+            ))
+        )
         ))
-    )
-))
 
 #App callback for world_map_plot
 app$callback(
