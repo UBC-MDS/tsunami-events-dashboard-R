@@ -9,7 +9,6 @@ library(dash)
 library(dashHtmlComponents)
 library(dashBootstrapComponents)
 
-
 tsunami_events <- read.csv('data/processed/tsunami-events.csv')
 country_codes <- read.csv("data/processed/country_codes.csv")
 
@@ -17,6 +16,14 @@ years <- unique(tsunami_events[['year']])
 countries <- sort(unique(tsunami_events[['country']]))
 
 app <- Dash$new(external_stylesheets = dbcThemes$QUARTZ)
+
+tsunami_events <- read.csv("data/processed/tsunami-events.csv")
+country_codes <- read.csv("data/processed/country_codes.csv")
+
+years = unique(tsunami_events[['year']])
+countries = sort(unique(tsunami_events[['country']]))
+
+app = Dash$new(external_stylesheets = dbcThemes$QUARTZ)
 
 create_map_plot <- function(year_start, year_end, countries,
                             magnitude_start, magnitude_end) {
@@ -177,7 +184,7 @@ create_scatter_plot <- function(
     ggplotly(p, tooltip = 'text')
 }
 
-create_bar_plot <- function(year_value, magnitude_value) {
+create_bar_plot <- function(year_value, magnitude_value=c(8,9)) {
     new_df <- tsunami_events %>% subset(year >= year_value[1] & year <= year_value[2])
     new_df <- tsunami_events %>% subset(earthquake_magnitude >= magnitude_value[1] & earthquake_magnitude <= earthquake_magnitude[2])
     p <- ggplot(new_df[order(-new_df$tsunami_intensity),][1:10,], 
@@ -277,6 +284,26 @@ app$layout(dbcContainer(
                 ),
                 htmlBr(),
                 htmlBr(),
+                htmlH6('Earthquake Magnitude of Interest',
+                       className='form-label'),
+                dccRangeSlider(
+                    id = 'magnitude_slider',
+                    min=min(tsunami_events$earthquake_magnitude),
+                    max=max(tsunami_events$earthquake_magnitude),
+                    value= list(min(tsunami_events$earthquake_magnitude),
+                                max(tsunami_events$earthquake_magnitude)),
+                    allowCross=FALSE,
+                    marks = list(
+                        "4" = "4",
+                        "5" = "5",
+                        "6" = "6",
+                        "7" = "7",
+                        "8" = "8",
+                        "9" = "9",
+                        "9.5" = "9.5"),
+                ),
+                htmlBr(),
+                htmlBr(),
                 htmlH6('Countries of Interest', className='form-label'),
                 dccDropdown(
                     id = 'country_select',
@@ -316,9 +343,14 @@ app$callback(
 app$callback(
     output('scatter_plot', 'figure'),
     list(input('year_slider', 'value'),
+         input('magnitude_slider', 'value'),
          input('country_select', 'value')),
-    function(years, countries) {
-        create_scatter_plot(years[1], years[2], countries)
+    function(years, magnitude, countries) {
+        create_scatter_plot(year_start = years[1],
+                            year_end = years[2],
+                            countries = countries,
+                            magnitude_start = magnitude[1],
+                            magnitude_end = magnitude[2])
     }
 )
 
