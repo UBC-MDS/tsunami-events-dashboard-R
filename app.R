@@ -177,8 +177,9 @@ create_scatter_plot <- function(
     ggplotly(p, tooltip = 'text')
 }
 
-create_bar_plot <- function(year_value) {
+create_bar_plot <- function(year_value, magnitude_value) {
     new_df <- tsunami_events %>% subset(year >= year_value[1] & year <= year_value[2])
+    new_df <- tsunami_events %>% subset(earthquake_magnitude >= magnitude_value[1] & earthquake_magnitude <= earthquake_magnitude[2])
     p <- ggplot(new_df[order(-new_df$tsunami_intensity),][1:10,], 
                 aes(x = 1:10,
                     y = tsunami_intensity,
@@ -190,38 +191,40 @@ create_bar_plot <- function(year_value) {
                                   "<br>Earthquake Magnitude:", earthquake_magnitude,
                                   "<br>Year:", year,
                                   "<br>Month:", month)))) +
-      geom_col() +
-      ylim(0, 12) +
-      xlab('Tsunami Instance') +
-      ylab('Tsunami Intensity') +
-      ggtitle('Top 10 Most Intense Tsunamis') +
-      theme(axis.text.x=element_blank(),
-            axis.ticks.x=element_blank())
+        geom_bar(stat = 'identity') +
+        coord_flip() +
+        ylim(0, 12) +
+        xlab('Tsunami Instance') +
+        ylab('Tsunami Intensity') +
+        ggtitle('Top 10 Most Intense Tsunamis') +
+        theme(axis.text.y=element_blank(),
+              axis.ticks.y=element_blank())
+    p <- p + scale_fill_brewer(palette="Blues")
     ggplotly(p, tooltip = 'text')
-  }
+}
 
 navbar = dbcNavbar(
     dbcContainer(
-      list(
-        htmlA(
-          dbcRow(
-            list(
-              dbcCol(dbcNavbarBrand('Tsunami Events Dashboard'))
+        list(
+            htmlA(
+                dbcRow(
+                    list(
+                        dbcCol(dbcNavbarBrand('Tsunami Events Dashboard'))
+                    ),
+                    align = 'center',
+                    className = 'g-0'
+                )
             ),
-            align = 'center',
-            className = 'g-0'
-          )
-        ),
-        dbcNavbarToggler(id = 'navbar-toggler', n_clicks = 0),
-        dbcCollapse(
-          id = 'navbar-collapse',
-          is_open = FALSE,
-          navbar = TRUE,
-      )
-    )
-  ),
-  color = 'dark',
-  dark = TRUE
+            dbcNavbarToggler(id = 'navbar-toggler', n_clicks = 0),
+            dbcCollapse(
+                id = 'navbar-collapse',
+                is_open = FALSE,
+                navbar = TRUE,
+            )
+        )
+    ),
+    color = 'dark',
+    dark = TRUE
 )
 
 world_plot_card <- dbcCard(
@@ -233,19 +236,19 @@ world_plot_card <- dbcCard(
 )
 
 scatter_plot_card <- dbcCard(
-  dbcCardBody(list(
-    htmlH6('Total Deaths and Earthquake Magnitude per Event'),
-    dccGraph(id = 'scatter_plot')
-  )
-  )
+    dbcCardBody(list(
+        htmlH6('Total Deaths and Earthquake Magnitude per Event'),
+        dccGraph(id = 'scatter_plot')
+    )
+    )
 )
 
 bar_chart_card <- dbcCard(
-  dbcCardBody(list(
-    htmlH6('10 Most Intense Tsunamis by Country'),
-    dccGraph(id = 'bar_chart')
-  )
-  )
+    dbcCardBody(list(
+        htmlH6('10 Most Intense Tsunamis by Country'),
+        dccGraph(id = 'bar_chart')
+    )
+    )
 )
 
 app$layout(dbcContainer(
@@ -321,11 +324,12 @@ app$callback(
 
 # App callback for bar_chart
 app$callback(
-  output('bar_chart', 'figure'),
-  list(input('year_slider', 'value')),
-  function(year_value){
-      create_bar_plot(year_value)
-  }
+    output('bar_chart', 'figure'),
+    list(input('year_slider', 'value'),
+         input('magnitude_slider', 'value')),
+    function(year_value, magnitude_value){
+        create_bar_plot(year_value, magnitude_value)
+    }
 )
 
 app$run_server(host = '0.0.0.0')
