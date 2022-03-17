@@ -232,7 +232,9 @@ bar_chart_card <- dbcCard(
 # Sidebar
 sidebar <- dbcCol(dbcRow(
     list(
-        htmlH5('Years and Countries Selection', style = list("font" = "Helvetica", "font-size" = "25px", "text-align" = "center")),
+        htmlH5('Years and Countries Selection',
+               style = list("font" = "Helvetica", "font-size" = "25px",
+                            "text-align" = "center")),
         htmlHr(),
         htmlH6('Years of Interest (1802 - 2022)',
                className='form-label'),
@@ -285,26 +287,29 @@ sidebar <- dbcCol(dbcRow(
 
 # Card Arrangement
 
-cards <- dbcRow(
-    list(
-        world_plot_card,
-        dbcCol(list(
-            scatter_plot_card,
-            bar_chart_card
-        ))
+cards <- list(
+    dbcRow(world_plot_card),
+    dbcRow(
+        list(
+            dbcCol(scatter_plot_card, width = 6),
+            dbcCol(bar_chart_card, width = 6)
+        )
     )
 )
+    
+
             
 app$layout(dbcContainer(
     list(
         navbar,
         dbcRow(
             list(
-                dbcCol(sidebar, width=3),
-                dbcCol(cards, width=9)
+                dbcCol(sidebar, width=2),
+                dbcCol(cards, width=10)
             ))
-        )
-        ))
+        ),
+    style = list("width" = "100%", "max-width" = "100%")
+))
 
 #App callback for world_map_plot
 app$callback(
