@@ -1,13 +1,21 @@
-library(dash)
-library(dashHtmlComponents)
+library(ggplot2)
+library(RColorBrewer)
+library(dplyr)
+library(readr)
+library(tidyr)
 library(purrr)
 library(plotly)
-library(ggplot2)
-library(dplyr)
+library(dash)
+library(dashHtmlComponents)
+library(dashBootstrapComponents)
 
-years = unique(tsunami_df[['year']])
-countries = sort(unique(tsunami_df[['country']]))
+tsunami_events <- read.csv('data/processed/tsunami-events.csv')
+country_codes <- read.csv("data/processed/country_codes.csv")
 
+years <- unique(tsunami_events[['year']])
+countries <- sort(unique(tsunami_events[['country']]))
+
+app <- Dash$new(external_stylesheets = dbcThemes$QUARTZ)
 
 tsunami_events <- read.csv("data/processed/tsunami-events.csv")
 country_codes <- read.csv("data/processed/country_codes.csv")
@@ -17,11 +25,81 @@ countries = sort(unique(tsunami_events[['country']]))
 
 app = Dash$new(external_stylesheets = dbcThemes$QUARTZ)
 
-create_scatter_plot <- function(year_start = years[1], 
-                                year_end = years[2], 
-                                countries = countries, 
-                                magnitude_start = magnitude[1], 
-                                magnitude_end = magnitude[2]) {
+create_map_plot <- function(year_start, year_end, countries,
+                            magnitude_start, magnitude_end) {
+    if (as.integer(year_start) > as.integer(year_end)) {
+        stop("Invalid value for year start and/or year end")
+    }
+    
+    if (typeof(countries) != "list") {
+        stop("Invalid value for countries")
+    }
+    
+    if (length(countries) > 0) {
+        tsunami_events <- tsunami_events %>%
+            filter(country %in% countries)
+    }
+    
+    tsunami_events <- tsunami_events %>%
+        filter(year >= year_start,
+               year <= year_end,
+               earthquake_magnitude >= magnitude_start,
+               earthquake_magnitude <= magnitude_end)
+    
+    counts <- tsunami_events %>%
+        group_by(country) %>%
+        summarise(count = n())
+    
+    counts <- right_join(
+        counts,
+        country_codes,
+        by = c("country" = "name")
+    ) %>%
+        mutate_at(vars(count), ~replace_na(., 0))
+    
+    l <- list(color = toRGB("grey"), width = 0.5)
+    g <- list(
+        showframe = FALSE,
+        showcoastlines = FALSE,
+        projection = list(type = 'Mercator')
+    )
+    
+    fig <- plot_geo(counts)
+    
+    colorscale <- data.frame(
+        z =  c(0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0),
+        col = brewer.pal(9, "Blues")
+    )
+    
+    fig <- fig %>%
+        add_trace(
+            z = ~count, color = ~count, colors = 'Blues',
+            text = ~paste("Country:", country, "\nHits:", count),
+            locations = ~alpha.3,
+            marker = list(line = l),
+            colorscale = colorscale,
+            colorbar = list(title = "Tsunami Hits"),
+            hoverinfo = "text",
+            zmin = 1,
+            zmax = max(counts$count)
+        )  %>%
+        layout(geo = g) %>%
+        add_markers(data = tsunami_events, y = ~latitude, x = ~longitude,
+                    size = 2, marker = list(size = 2, opacity=0.4, 
+                                            color = "red"),
+                    text = ~paste("Earthquake Magnitude:",
+                                  earthquake_magnitude,
+                                  "\nEvent Year:",
+                                  year),
+                    hoverinfo = "text"
+        )
+    
+    fig
+}
+
+create_scatter_plot <- function(
+    year_start, year_end, countries, magnitude_start = 8, magnitude_end = 9
+    ) {
     if (as.integer(year_start) > as.integer(year_end)) {
         stop("Invalid value for year start and/or year end")
     }
@@ -204,7 +282,6 @@ app$layout(dbcContainer(
                         "2000" = "2000",
                         "2022" = "2022"),
                 ),
-                
                 htmlBr(),
                 htmlBr(),
                 htmlH6('Earthquake Magnitude of Interest',
@@ -268,7 +345,6 @@ app$callback(
     list(input('year_slider', 'value'),
          input('magnitude_slider', 'value'),
          input('country_select', 'value')),
-         #input('magnitude_slider', 'value')),
     function(years, magnitude, countries) {
         create_scatter_plot(year_start = years[1],
                             year_end = years[2],
