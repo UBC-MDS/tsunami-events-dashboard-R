@@ -90,7 +90,9 @@ create_map_plot <- function(year_start, year_end, countries,
     fig
 }
 
-create_scatter_plot <- function(year_start, year_end, countries) {
+create_scatter_plot <- function(
+    year_start, year_end, countries, magnitude_start = 8, magnitude_end = 9
+    ) {
     if (as.integer(year_start) > as.integer(year_end)) {
         stop("Invalid value for year start and/or year end")
     }
@@ -118,37 +120,61 @@ create_scatter_plot <- function(year_start, year_end, countries) {
             unique() |>
             head(10)
         tsunami_events <- tsunami_events %>%
-            filter(country %in% countries)
-        tsunami_events <- tsunami_events %>%
-            filter(country %in% countries_subset)
+            filter(
+                country %in% countries,
+                country %in% countries_subset
+                )
     }
     else if (length(countries) > 0) {
         tsunami_events <- tsunami_events %>%
             filter(country %in% countries)
+        
     }
     
-    tsunami_events <- tsunami_events %>%
-        filter(year >= year_start,
-               year <= year_end)
+    tsunami_events_active <- tsunami_events %>%
+        filter(
+            year >= year_start,
+            year <= year_end,
+            earthquake_magnitude >= magnitude_start,
+            earthquake_magnitude <= magnitude_end
+            )
+    tsunami_events_inactive <- tsunami_events %>%
+        filter(
+            year >= year_start,
+            year <= year_end,
+            (earthquake_magnitude < magnitude_start) | 
+                 (earthquake_magnitude > magnitude_end))
     
-    p <- ggplot(tsunami_events) +
-        aes(x = earthquake_magnitude,
-            y = total_deaths,
-            color = country) +
-        geom_point() +
+    p <- ggplot(tsunami_events_active) +
+        geom_point(aes(x = earthquake_magnitude,
+                       y = total_deaths,
+                       color = country,
+                       text = (paste("Country:", country,
+                                     "<br>Location:", location_name,
+                                     "<br>Tsunami Intensity:", tsunami_intensity,
+                                     "<br>Earthquake Magnitude:", earthquake_magnitude,
+                                     "<br>Year:", year,
+                                     "<br>Month:", month)))) +
+        geom_point(
+            data = tsunami_events_inactive,
+            aes(x=earthquake_magnitude, y=total_deaths),
+            alpha = 0.1,
+            size = 1) +
         ggthemes::scale_color_tableau() +
         theme_bw() +
         scale_y_log10(
             breaks = c(1, 10, 100, 1000, 10000, 100000),
             labels = c("1", "10", "100", "1000", "10000", "100000")
-            
         ) +
         labs(
             x="Earthquake Magnitude (on Richter scale)",
-            y="Total Deaths Recorded per Event \n(log-transformed)"
+            y="Total Deaths Recorded per Event \n(Log-Scaled)"
         ) +
-        xlim(5.5, 10)
-    ggplotly(p)
+        xlim(5.5, 10) +
+        scale_colour_discrete("Countries (Up to Top 10)")
+
+    
+    ggplotly(p, tooltip = 'text')
 }
 
 create_bar_plot <- function(year_value) {
