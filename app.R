@@ -98,8 +98,7 @@ create_map_plot <- function(year_start, year_end, countries,
 }
 
 create_scatter_plot <- function(
-    year_start, year_end, countries, magnitude_start = 8, magnitude_end = 9
-    ) {
+    year_start, year_end, countries, magnitude_start, magnitude_end) {
     if (as.integer(year_start) > as.integer(year_end)) {
         stop("Invalid value for year start and/or year end")
     }
@@ -142,6 +141,7 @@ create_scatter_plot <- function(
         filter(
             year >= year_start,
             year <= year_end,
+            total_deaths > 0,
             earthquake_magnitude >= magnitude_start,
             earthquake_magnitude <= magnitude_end
             )
@@ -149,6 +149,7 @@ create_scatter_plot <- function(
         filter(
             year >= year_start,
             year <= year_end,
+            total_deaths > 0,
             (earthquake_magnitude < magnitude_start) | 
                  (earthquake_magnitude > magnitude_end))
     
