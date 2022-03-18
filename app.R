@@ -17,14 +17,9 @@ countries <- sort(unique(tsunami_events[['country']]))
 
 app <- Dash$new(external_stylesheets = dbcThemes$QUARTZ)
 
-tsunami_events <- read.csv("data/processed/tsunami-events.csv")
-country_codes <- read.csv("data/processed/country_codes.csv")
+# Creation of plots
 
-years = unique(tsunami_events[['year']])
-countries = sort(unique(tsunami_events[['country']]))
-
-app = Dash$new(external_stylesheets = dbcThemes$QUARTZ)
-
+# Map Plot
 create_map_plot <- function(year_start, year_end, countries,
                             magnitude_start, magnitude_end) {
     if (as.integer(year_start) > as.integer(year_end)) {
@@ -98,8 +93,8 @@ create_map_plot <- function(year_start, year_end, countries,
 }
 
 create_scatter_plot <- function(
-    year_start, year_end, countries, magnitude_start = 8, magnitude_end = 9
-    ) {
+    year_start, year_end, countries, magnitude_start, magnitude_end
+) {
     if (as.integer(year_start) > as.integer(year_end)) {
         stop("Invalid value for year start and/or year end")
     }
@@ -130,7 +125,7 @@ create_scatter_plot <- function(
             filter(
                 country %in% countries,
                 country %in% countries_subset
-                )
+            )
     }
     else if (length(countries) > 0) {
         tsunami_events <- tsunami_events %>%
@@ -144,13 +139,13 @@ create_scatter_plot <- function(
             year <= year_end,
             earthquake_magnitude >= magnitude_start,
             earthquake_magnitude <= magnitude_end
-            )
+        )
     tsunami_events_inactive <- tsunami_events %>%
         filter(
             year >= year_start,
             year <= year_end,
             (earthquake_magnitude < magnitude_start) | 
-                 (earthquake_magnitude > magnitude_end))
+                (earthquake_magnitude > magnitude_end))
     
     p <- ggplot(tsunami_events_active) +
         geom_point(aes(x = earthquake_magnitude,
@@ -179,7 +174,7 @@ create_scatter_plot <- function(
         ) +
         xlim(5.5, 10) +
         scale_colour_discrete("Countries (Up to Top 10)")
-
+    
     
     ggplotly(p, tooltip = 'text')
 }
@@ -210,6 +205,7 @@ create_bar_plot <- function(year_value, magnitude_value=c(8,9)) {
     ggplotly(p, tooltip = 'text')
 }
 
+# Navigation Bar
 navbar = dbcNavbar(
     dbcContainer(
         list(
@@ -234,6 +230,7 @@ navbar = dbcNavbar(
     dark = TRUE
 )
 
+# Cards
 world_plot_card <- dbcCard(
     dbcCardBody(list(
         htmlH6('Total Tsunami Hits by Country with Origin Points'),
@@ -258,84 +255,100 @@ bar_chart_card <- dbcCard(
     )
 )
 
+# Sidebar
+sidebar <- dbcCol(dbcRow(
+    list(
+        htmlH5('Years and Countries Selection',
+               style = list("font" = "Helvetica", "font-size" = "25px",
+                            "text-align" = "center")),
+        htmlHr(),
+        htmlH6('Years of Interest (1802 - 2022)',
+               className='form-label'),
+        dccRangeSlider(
+            id = 'year_slider',
+            min=min(tsunami_events$year),
+            max=max(tsunami_events$year),
+            value= list(min(tsunami_events$year),
+                        max(tsunami_events$year)),
+            allowCross=FALSE,
+            marks = list(
+                "1802" = "1802",
+                "1850" = "1850",
+                "1900" = "1900",
+                "1950" = "1950",
+                "2000" = "2000",
+                "2022" = "2022"),
+        ),
+        htmlBr(),
+        htmlBr(),
+        htmlH6('Earthquake Magnitude of Interest',
+               className='form-label'),
+        dccRangeSlider(
+            id = 'magnitude_slider',
+            min=min(tsunami_events$earthquake_magnitude),
+            max=max(tsunami_events$earthquake_magnitude),
+            value= list(min(tsunami_events$earthquake_magnitude),
+                        max(tsunami_events$earthquake_magnitude)),
+            allowCross=FALSE,
+            marks = list(
+                "4" = "4",
+                "5" = "5",
+                "6" = "6",
+                "7" = "7",
+                "8" = "8",
+                "9" = "9",
+                "9.5" = "9.5"),
+        ),
+        htmlBr(),
+        htmlBr(),
+        htmlH6('Countries of Interest', className='form-label'),
+        dccDropdown(
+            id = 'country_select',
+            multi = TRUE,
+            value = list(),
+            options = countries,
+            className = 'text-dark')
+    ))
+)
+
+# Card Arrangement
+
+cards <- list(
+    dbcRow(world_plot_card),
+    dbcRow(
+        list(
+            dbcCol(scatter_plot_card, width = 6),
+            dbcCol(bar_chart_card, width = 6)
+        )
+    )
+)
+
+
+
 app$layout(dbcContainer(
     list(
         navbar,
-        dbcRow(list(
-            dbcCol(list(
-                htmlH5('Years and Countries Selection', className='form-label'),
-                htmlHr(),
-                htmlH6('Years of Interest (1802 - 2022)',
-                       className='form-label'),
-                dccRangeSlider(
-                    id = 'year_slider',
-                    min=min(tsunami_events$year),
-                    max=max(tsunami_events$year),
-                    value= list(min(tsunami_events$year),
-                                max(tsunami_events$year)),
-                    allowCross=FALSE,
-                    marks = list(
-                        "1802" = "1802",
-                        "1850" = "1850",
-                        "1900" = "1900",
-                        "1950" = "1950",
-                        "2000" = "2000",
-                        "2022" = "2022"),
-                ),
-                htmlBr(),
-                htmlBr(),
-                htmlH6('Earthquake Magnitude of Interest',
-                       className='form-label'),
-                dccRangeSlider(
-                    id = 'magnitude_slider',
-                    min=min(tsunami_events$earthquake_magnitude),
-                    max=max(tsunami_events$earthquake_magnitude),
-                    value= list(min(tsunami_events$earthquake_magnitude),
-                                max(tsunami_events$earthquake_magnitude)),
-                    allowCross=FALSE,
-                    marks = list(
-                        "4" = "4",
-                        "5" = "5",
-                        "6" = "6",
-                        "7" = "7",
-                        "8" = "8",
-                        "9" = "9",
-                        "9.5" = "9.5"),
-                ),
-                htmlBr(),
-                htmlBr(),
-                htmlH6('Countries of Interest', className='form-label'),
-                dccDropdown(
-                    id = 'country_select',
-                    multi = TRUE,
-                    value = list(),
-                    options = countries,
-                    className = 'text-dark')
-            ), width = 4),
-            dbcCol(list(
-                world_plot_card,
-                htmlBr(),
-                htmlBr(),
-                dbcRow(list(
-                    scatter_plot_card,
-                    bar_chart_card
-                ))
-            ), width = 8)
-        ))
-    )
+        dbcRow(
+            list(
+                dbcCol(sidebar, width=2),
+                dbcCol(cards, width=10)
+            ))
+    ),
+    style = list("width" = "100%", "max-width" = "100%")
 ))
 
 #App callback for world_map_plot
 app$callback(
     output('map_plot', 'figure'),
     list(input('year_slider', 'value'),
+         input('magnitude_slider', 'value'),
          input('country_select', 'value')),
-    function(years, countries) {
+    function(years, magnitude, countries) {
         create_map_plot(year_start = years[1],
                         year_end = years[2],
                         countries = countries,
-                        magnitude_start = 8,
-                        magnitude_end = 9)
+                        magnitude_start = magnitude[1],
+                        magnitude_end = magnitude[2])
     }
 )
 
