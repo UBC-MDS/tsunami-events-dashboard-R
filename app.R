@@ -109,21 +109,21 @@ create_scatter_plot <- function(
     
     if (length(countries) == 0) {
         countries_subset <- NULL
-        countries_subset <- tsunami_events |>
-            arrange(desc(earthquake_magnitude)) |>
-            pull(country) |>
-            unique() |>
+        countries_subset <- tsunami_events %>%
+            arrange(desc(earthquake_magnitude)) %>%
+            pull(country) %>%
+            unique() %>%
             head(10)
         tsunami_events <- tsunami_events %>%
             filter(country %in% countries_subset)
     } 
     else if (length(countries) > 10) {
         countries_subset <- NULL
-        countries_subset <- tsunami_events |>
-            arrange(desc(earthquake_magnitude)) |>
-            filter(country %in% countries) |>
-            pull(country) |>
-            unique() |>
+        countries_subset <- tsunami_events %>%
+            arrange(desc(earthquake_magnitude)) %>%
+            filter(country %in% countries) %>%
+            pull(country) %>%
+            unique() %>%
             head(10)
         tsunami_events <- tsunami_events %>%
             filter(
