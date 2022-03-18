@@ -9,7 +9,6 @@ library(dash)
 library(dashHtmlComponents)
 library(dashBootstrapComponents)
 
-
 tsunami_events <- read.csv('data/processed/tsunami-events.csv')
 country_codes <- read.csv("data/processed/country_codes.csv")
 
@@ -93,8 +92,9 @@ create_map_plot <- function(year_start, year_end, countries,
     fig
 }
 
-# Scatter Plot
-create_scatter_plot <- function(year_start, year_end, countries) {
+create_scatter_plot <- function(
+    year_start, year_end, countries, magnitude_start = 8, magnitude_end = 9
+) {
     if (as.integer(year_start) > as.integer(year_end)) {
         stop("Invalid value for year start and/or year end")
     }
@@ -122,42 +122,66 @@ create_scatter_plot <- function(year_start, year_end, countries) {
             unique() |>
             head(10)
         tsunami_events <- tsunami_events %>%
-            filter(country %in% countries)
-        tsunami_events <- tsunami_events %>%
-            filter(country %in% countries_subset)
+            filter(
+                country %in% countries,
+                country %in% countries_subset
+            )
     }
     else if (length(countries) > 0) {
         tsunami_events <- tsunami_events %>%
             filter(country %in% countries)
+        
     }
     
-    tsunami_events <- tsunami_events %>%
-        filter(year >= year_start,
-               year <= year_end)
+    tsunami_events_active <- tsunami_events %>%
+        filter(
+            year >= year_start,
+            year <= year_end,
+            earthquake_magnitude >= magnitude_start,
+            earthquake_magnitude <= magnitude_end
+        )
+    tsunami_events_inactive <- tsunami_events %>%
+        filter(
+            year >= year_start,
+            year <= year_end,
+            (earthquake_magnitude < magnitude_start) | 
+                (earthquake_magnitude > magnitude_end))
     
-    p <- ggplot(tsunami_events) +
-        aes(x = earthquake_magnitude,
-            y = total_deaths,
-            color = country) +
-        geom_point() +
+    p <- ggplot(tsunami_events_active) +
+        geom_point(aes(x = earthquake_magnitude,
+                       y = total_deaths,
+                       color = country,
+                       text = (paste("Country:", country,
+                                     "<br>Location:", location_name,
+                                     "<br>Tsunami Intensity:", tsunami_intensity,
+                                     "<br>Earthquake Magnitude:", earthquake_magnitude,
+                                     "<br>Year:", year,
+                                     "<br>Month:", month)))) +
+        geom_point(
+            data = tsunami_events_inactive,
+            aes(x=earthquake_magnitude, y=total_deaths),
+            alpha = 0.1,
+            size = 1) +
         ggthemes::scale_color_tableau() +
         theme_bw() +
         scale_y_log10(
             breaks = c(1, 10, 100, 1000, 10000, 100000),
             labels = c("1", "10", "100", "1000", "10000", "100000")
-            
         ) +
         labs(
             x="Earthquake Magnitude (on Richter scale)",
-            y="Total Deaths Recorded per Event \n(log-transformed)"
+            y="Total Deaths Recorded per Event \n(Log-Scaled)"
         ) +
-        xlim(5.5, 10)
-    ggplotly(p)
+        xlim(5.5, 10) +
+        scale_colour_discrete("Countries (Up to Top 10)")
+    
+    
+    ggplotly(p, tooltip = 'text')
 }
 
-# Bar Plot
-create_bar_plot <- function(year_value) {
+create_bar_plot <- function(year_value, magnitude_value=c(8,9)) {
     new_df <- tsunami_events %>% subset(year >= year_value[1] & year <= year_value[2])
+    new_df <- tsunami_events %>% subset(earthquake_magnitude >= magnitude_value[1] & earthquake_magnitude <= earthquake_magnitude[2])
     p <- ggplot(new_df[order(-new_df$tsunami_intensity),][1:10,], 
                 aes(x = 1:10,
                     y = tsunami_intensity,
@@ -169,39 +193,41 @@ create_bar_plot <- function(year_value) {
                                   "<br>Earthquake Magnitude:", earthquake_magnitude,
                                   "<br>Year:", year,
                                   "<br>Month:", month)))) +
-      geom_col() +
-      ylim(0, 12) +
-      xlab('Tsunami Instance') +
-      ylab('Tsunami Intensity') +
-      ggtitle('Top 10 Most Intense Tsunamis') +
-      theme(axis.text.x=element_blank(),
-            axis.ticks.x=element_blank())
+        geom_bar(stat = 'identity') +
+        coord_flip() +
+        ylim(0, 12) +
+        xlab('Tsunami Instance') +
+        ylab('Tsunami Intensity') +
+        ggtitle('Top 10 Most Intense Tsunamis') +
+        theme(axis.text.y=element_blank(),
+              axis.ticks.y=element_blank())
+    p <- p + scale_fill_brewer(palette="Blues")
     ggplotly(p, tooltip = 'text')
-  }
+}
 
 # Navigation Bar
 navbar = dbcNavbar(
     dbcContainer(
-      list(
-        htmlA(
-          dbcRow(
-            list(
-              dbcCol(dbcNavbarBrand('Tsunami Events Dashboard'))
+        list(
+            htmlA(
+                dbcRow(
+                    list(
+                        dbcCol(dbcNavbarBrand('Tsunami Events Dashboard'))
+                    ),
+                    align = 'center',
+                    className = 'g-0'
+                )
             ),
-            align = 'center',
-            className = 'g-0'
-          )
-        ),
-        dbcNavbarToggler(id = 'navbar-toggler', n_clicks = 0),
-        dbcCollapse(
-          id = 'navbar-collapse',
-          is_open = FALSE,
-          navbar = TRUE,
-      )
-    )
-  ),
-  color = 'dark',
-  dark = TRUE
+            dbcNavbarToggler(id = 'navbar-toggler', n_clicks = 0),
+            dbcCollapse(
+                id = 'navbar-collapse',
+                is_open = FALSE,
+                navbar = TRUE,
+            )
+        )
+    ),
+    color = 'dark',
+    dark = TRUE
 )
 
 # Cards
@@ -214,19 +240,19 @@ world_plot_card <- dbcCard(
 )
 
 scatter_plot_card <- dbcCard(
-  dbcCardBody(list(
-    htmlH6('Total Deaths and Earthquake Magnitude per Event'),
-    dccGraph(id = 'scatter_plot')
-  )
-  )
+    dbcCardBody(list(
+        htmlH6('Total Deaths and Earthquake Magnitude per Event'),
+        dccGraph(id = 'scatter_plot')
+    )
+    )
 )
 
 bar_chart_card <- dbcCard(
-  dbcCardBody(list(
-    htmlH6('10 Most Intense Tsunamis by Country'),
-    dccGraph(id = 'bar_chart')
-  )
-  )
+    dbcCardBody(list(
+        htmlH6('10 Most Intense Tsunamis by Country'),
+        dccGraph(id = 'bar_chart')
+    )
+    )
 )
 
 # Sidebar
@@ -282,7 +308,7 @@ sidebar <- dbcCol(dbcRow(
             value = list(),
             options = countries,
             className = 'text-dark')
-        ))
+    ))
 )
 
 # Card Arrangement
@@ -296,9 +322,9 @@ cards <- list(
         )
     )
 )
-    
 
-            
+
+
 app$layout(dbcContainer(
     list(
         navbar,
@@ -307,7 +333,7 @@ app$layout(dbcContainer(
                 dbcCol(sidebar, width=2),
                 dbcCol(cards, width=10)
             ))
-        ),
+    ),
     style = list("width" = "100%", "max-width" = "100%")
 ))
 
@@ -329,19 +355,25 @@ app$callback(
 app$callback(
     output('scatter_plot', 'figure'),
     list(input('year_slider', 'value'),
+         input('magnitude_slider', 'value'),
          input('country_select', 'value')),
-    function(years, countries) {
-        create_scatter_plot(years[1], years[2], countries)
+    function(years, magnitude, countries) {
+        create_scatter_plot(year_start = years[1],
+                            year_end = years[2],
+                            countries = countries,
+                            magnitude_start = magnitude[1],
+                            magnitude_end = magnitude[2])
     }
 )
 
 # App callback for bar_chart
 app$callback(
-  output('bar_chart', 'figure'),
-  list(input('year_slider', 'value')),
-  function(year_value){
-      create_bar_plot(year_value)
-  }
+    output('bar_chart', 'figure'),
+    list(input('year_slider', 'value'),
+         input('magnitude_slider', 'value')),
+    function(year_value, magnitude_value){
+        create_bar_plot(year_value, magnitude_value)
+    }
 )
 
 app$run_server(host = '0.0.0.0')
