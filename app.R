@@ -15,15 +15,13 @@ country_codes <- read.csv("data/processed/country_codes.csv")
 years <- unique(tsunami_events[['year']])
 countries <- sort(unique(tsunami_events[['country']]))
 
-app <- Dash$new(external_stylesheets = dbcThemes$QUARTZ)
-
 tsunami_events <- read.csv("data/processed/tsunami-events.csv")
 country_codes <- read.csv("data/processed/country_codes.csv")
 
 years = unique(tsunami_events[['year']])
 countries = sort(unique(tsunami_events[['country']]))
 
-app = Dash$new(external_stylesheets = dbcThemes$QUARTZ)
+app <- Dash$new(external_stylesheets = dbcThemes$CYBORG)
 
 create_map_plot <- function(year_start, year_end, countries,
                             magnitude_start, magnitude_end) {
@@ -99,6 +97,7 @@ create_map_plot <- function(year_start, year_end, countries,
 
 create_scatter_plot <- function(
     year_start, year_end, countries, magnitude_start, magnitude_end) {
+    
     if (as.integer(year_start) > as.integer(year_end)) {
         stop("Invalid value for year start and/or year end")
     }
@@ -106,6 +105,17 @@ create_scatter_plot <- function(
     if (typeof(countries) != "list") {
         stop("Invalid value for countries")
     }
+    
+    min_magnitude_deaths <- tsunami_events %>%
+        filter(total_deaths > 0) %>%
+        select(earthquake_magnitude) %>%
+        min()
+
+    max_magnitude_deaths <- tsunami_events %>%
+        filter(total_deaths > 0) %>%
+        select(earthquake_magnitude) %>%
+        max()
+
     
     if (length(countries) == 0) {
         countries_subset <- NULL
@@ -170,6 +180,8 @@ create_scatter_plot <- function(
             size = 1) +
         ggthemes::scale_color_tableau() +
         theme_bw() +
+        theme(legend.title = element_text(size=10),
+              legend.text = element_text(size=8)) +
         scale_y_log10(
             breaks = c(1, 10, 100, 1000, 10000, 100000),
             labels = c("1", "10", "100", "1000", "10000", "100000")
@@ -183,6 +195,7 @@ create_scatter_plot <- function(
 
     
     ggplotly(p, tooltip = 'text')
+
 }
 
 create_bar_plot <- function(year_value, magnitude_value=c(8,9)) {
@@ -206,7 +219,9 @@ create_bar_plot <- function(year_value, magnitude_value=c(8,9)) {
         ylab('Tsunami Intensity') +
         ggtitle('Top 10 Most Intense Tsunamis') +
         theme(axis.text.y=element_blank(),
-              axis.ticks.y=element_blank())
+              axis.ticks.y=element_blank(),
+              legend.title = element_text(size=10),
+              legend.text = element_text(size=8))
     p <- p + scale_fill_brewer(palette="Blues")
     ggplotly(p, tooltip = 'text')
 }
@@ -240,7 +255,8 @@ world_plot_card <- dbcCard(
         htmlH6('Total Tsunami Hits by Country with Origin Points'),
         dccGraph(id = 'map_plot')
     )
-    )
+    ),
+    color = "dark", inverse = TRUE
 )
 
 scatter_plot_card <- dbcCard(
@@ -248,7 +264,8 @@ scatter_plot_card <- dbcCard(
         htmlH6('Total Deaths and Earthquake Magnitude per Event'),
         dccGraph(id = 'scatter_plot')
     )
-    )
+    ),
+    color = "dark", inverse = TRUE
 )
 
 bar_chart_card <- dbcCard(
@@ -256,7 +273,8 @@ bar_chart_card <- dbcCard(
         htmlH6('10 Most Intense Tsunamis by Country'),
         dccGraph(id = 'bar_chart')
     )
-    )
+    ),
+    color = "dark", inverse = TRUE
 )
 
 app$layout(dbcContainer(
