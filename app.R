@@ -207,29 +207,15 @@ create_bar_plot <- function(year_value, magnitude_value) {
 }
 
 # Navigation Bar
-navbar = dbcNavbar(
-    dbcContainer(
-        list(
-            htmlA(
-                dbcRow(
-                    list(
-                        dbcCol(dbcNavbarBrand('Tsunami Events Dashboard'))
-                    ),
-                    align = 'center',
-                    className = 'g-0'
-                )
-            ),
-            dbcNavbarToggler(id = 'navbar-toggler', n_clicks = 0),
-            dbcCollapse(
-                id = 'navbar-collapse',
-                is_open = FALSE,
-                navbar = TRUE,
-            )
-        )
-    ),
+navbar <- dbcNavbarSimple(
+    brand = 'Tsunami Events Dashboard',
     color = 'dark',
-    dark = TRUE
+    dark = TRUE,
+    style = list('padding-left' = '0',
+                 "text-align" = "left"),
+    
 )
+
 
 # Cards
 world_plot_card <- dbcCard(
@@ -237,7 +223,7 @@ world_plot_card <- dbcCard(
         htmlH6('Total Tsunami Hits by Country with Origin Points'),
         dccGraph(id = 'map_plot')
     )
-    )
+    ), style = list('padding' = '0'),
 )
 
 scatter_plot_card <- dbcCard(
@@ -259,9 +245,12 @@ bar_chart_card <- dbcCard(
 # Sidebar
 sidebar <- dbcCol(dbcRow(
     list(
+        htmlP(" "),
+        htmlP(" "),
         htmlH5('Years and Countries Selection',
-               style = list("font" = "Helvetica", "font-size" = "25px",
+               style = list("font" = "Helvetica", "font-size" = "20px",
                             "text-align" = "center")),
+        htmlBr(),
         htmlHr(),
         htmlH6('Years of Interest (1802 - 2022)',
                className='form-label'),
@@ -306,18 +295,29 @@ sidebar <- dbcCol(dbcRow(
             multi = TRUE,
             value = list(),
             options = countries,
-            className = 'text-dark')
+            className = 'text-dark'),
+        htmlBr(),
+        htmlBr(),
+        htmlBr(),
+        htmlHr(),
+        htmlP(
+            "A data visualisation app that allows viewers to observe the number and intensity of tsunamis based on years and countries")
     ))
-)
+    )
 
 # Card Arrangement
 
 cards <- list(
-    dbcRow(world_plot_card),
+    dbcRow(world_plot_card,
+           style = list('padding' = '12px')),
     dbcRow(
         list(
-            dbcCol(scatter_plot_card, width = 6),
-            dbcCol(bar_chart_card, width = 6)
+            dbcCol(scatter_plot_card, width = 6,
+                   style = list('padding-right' = '6px',
+                                'padding-bottom' = '6px')),
+            dbcCol(bar_chart_card, width = 6,
+                   style = list('padding-left' = '6px',
+                                'padding-bottom' = '6px'))
         )
     )
 )
@@ -329,11 +329,17 @@ app$layout(dbcContainer(
         navbar,
         dbcRow(
             list(
-                dbcCol(sidebar, width=2),
+                dbcCol(sidebar, 
+                       width=2,
+                       style = list(
+                           'backgroundColor' = '#808080',
+                           'border-width' = '0')),
                 dbcCol(cards, width=10)
             ))
     ),
-    style = list("width" = "100%", "max-width" = "100%")
+    style = list("width" = "100%", 
+                 "max-width" = "100%",
+                 'backgroundColor' = '#191919')
 ))
 
 #App callback for world_map_plot
