@@ -151,8 +151,10 @@ create_scatter_plot <- function(year_start, year_end, countries) {
 }
 
 create_bar_plot <- function(year_value, magnitude_value) {
-    new_df <- tsunami_events %>% subset(year >= year_value[1] & year <= year_value[2])
-    new_df <- tsunami_events %>% subset(earthquake_magnitude >= magnitude_value[1] & earthquake_magnitude <= earthquake_magnitude[2])
+    new_df <- filter(year >= year_value[1],
+               year <= year_end[2],
+               earthquake_magnitude >= magnitude_start[1],
+               earthquake_magnitude <= magnitude_end[2])
     p <- ggplot(new_df[order(-new_df$tsunami_intensity),][1:10,], 
                 aes(x = 1:10,
                     y = tsunami_intensity,
@@ -169,7 +171,6 @@ create_bar_plot <- function(year_value, magnitude_value) {
         ylim(0, 12) +
         xlab('Tsunami Instance') +
         ylab('Tsunami Intensity') +
-        ggtitle('Top 10 Most Intense Tsunamis') +
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank())
     p <- p + scale_fill_brewer(palette="Blues")
