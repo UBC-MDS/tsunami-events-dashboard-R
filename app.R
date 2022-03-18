@@ -93,7 +93,7 @@ create_map_plot <- function(year_start, year_end, countries,
 }
 
 create_scatter_plot <- function(
-    year_start, year_end, countries, magnitude_start = 8, magnitude_end = 9
+    year_start, year_end, countries, magnitude_start, magnitude_end
 ) {
     if (as.integer(year_start) > as.integer(year_end)) {
         stop("Invalid value for year start and/or year end")
@@ -341,13 +341,14 @@ app$layout(dbcContainer(
 app$callback(
     output('map_plot', 'figure'),
     list(input('year_slider', 'value'),
+         input('magnitude_slider', 'value'),
          input('country_select', 'value')),
-    function(years, countries) {
+    function(years, magnitude, countries) {
         create_map_plot(year_start = years[1],
                         year_end = years[2],
                         countries = countries,
-                        magnitude_start = 8,
-                        magnitude_end = 9)
+                        magnitude_start = magnitude[1],
+                        magnitude_end = magnitude[2])
     }
 )
 
