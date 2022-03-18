@@ -7,7 +7,6 @@ library(purrr)
 library(plotly)
 library(dash)
 library(dashHtmlComponents)
-library(dashBootstrapComponents)
 
 tsunami_events <- read.csv('data/processed/tsunami-events.csv')
 country_codes <- read.csv("data/processed/country_codes.csv")
@@ -180,14 +179,15 @@ create_scatter_plot <- function(
 }
 
 create_bar_plot <- function(year_value, magnitude_value) {
-    new_df <- filter(year >= year_value[1],
-               year <= year_end[2],
-               earthquake_magnitude >= magnitude_start[1],
-               earthquake_magnitude <= magnitude_end[2])
-    p <- ggplot(new_df[order(-new_df$tsunami_intensity),][1:10,], 
+    tsunami_events_active <- tsunami_events %>%
+        filter(
+            year >= year_value[1],
+            year <= year_value[2],
+            earthquake_magnitude >= magnitude_value[1],
+            earthquake_magnitude <= magnitude_value[2])
+    p <- ggplot(tsunami_events_active[order(-tsunami_events_active$tsunami_intensity),][1:10,], 
                 aes(x = 1:10,
                     y = tsunami_intensity,
-                    color = country,
                     fill = country,
                     text = (paste("Country:", country,
                                   "<br>Location:", location_name,
@@ -200,7 +200,6 @@ create_bar_plot <- function(year_value, magnitude_value) {
         ylim(0, 12) +
         xlab('Tsunami Instance') +
         ylab('Tsunami Intensity') +
-        theme_bw() +
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank())
     p <- p + scale_fill_brewer(palette="Blues")
@@ -379,4 +378,4 @@ app$callback(
     }
 )
 
-app$run_server(host = '0.0.0.0')
+app$run_server(debug = T)
