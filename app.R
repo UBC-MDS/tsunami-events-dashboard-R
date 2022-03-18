@@ -200,6 +200,7 @@ create_bar_plot <- function(year_value, magnitude_value) {
         ylim(0, 12) +
         xlab('Tsunami Instance') +
         ylab('Tsunami Intensity') +
+        theme_bw() +
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank())
     p <- p + scale_fill_brewer(palette="Blues")
