@@ -202,7 +202,7 @@ create_bar_plot <- function(year_value, magnitude_value) {
         ylab('Tsunami Intensity') +
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank())
-    p <- p + scale_fill_brewer(palette="Blues")
+    p <- p + scale_fill_brewer("Countries", palette="Blues")
     ggplotly(p, tooltip = 'text')
 }
 
@@ -222,7 +222,7 @@ navbar <- dbcNavbar(
         ), style = list('margin-left' = '0')
     ),
     color = "dark",
-    dark = TRUE
+    dark = TRUE,
 )
 
 # Cards
@@ -348,13 +348,20 @@ app$layout(dbcContainer(
                        style = list(
                            'backgroundColor' = '#484848',
                            'border-width' = '0',
-                           'padding' = '20px')),
+                           'padding' = '20px',
+                           'position' = 'fixed')),
+                dbcCol(width = 3,
+                       style = list(
+                           'backgroundColor' = '#484848'
+                       )),
                 dbcCol(cards, width=9)
             ))
     ),
+    fluid = TRUE,
     style = list("width" = "100%", 
                  "max-width" = "100%",
                  'backgroundColor' = '#191919')
+    
 ))
 
 #App callback for world_map_plot
