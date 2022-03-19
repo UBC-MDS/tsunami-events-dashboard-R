@@ -112,7 +112,6 @@ create_scatter_plot <- function(
         select(earthquake_magnitude) %>%
         max()
     
-    
     if (length(countries) == 0) {
         countries_subset <- NULL
         countries_subset <- tsunami_events %>%
@@ -252,10 +251,11 @@ navbar <- dbcNavbar(
                     align = "center",
                     className = "g-0"
                 )
-        ), style = list('margin-left' = '0')
+        ), style = list('margin-left' = '0',
+                        'padding-left' = '2rem')
     ),
     color = "dark",
-    dark = TRUE,
+    dark = TRUE
 )
 
 # Cards
@@ -355,8 +355,9 @@ sidebar <- dbcCol(dbcRow(
 # Card Arrangement
 
 cards <- list(
-    dbcRow(world_plot_card,
-           style = list('padding' = '12px')),
+    dbcRow(world_plot_card, 
+           style = list('padding' = '12px')
+           ),
     dbcRow(
         list(
             dbcCol(scatter_plot_card, width = 6,
@@ -393,8 +394,12 @@ app$layout(dbcContainer(
     fluid = TRUE,
     style = list("width" = "100%", 
                  "max-width" = "100%",
-                 'backgroundColor' = '#191919')
-    
+                 'backgroundColor' = '#191919',
+                 'background-size' = 'auto',
+                 'min-height' = '100vh',
+                 'height' = '200%',
+                 'padding' = '0'
+                 )
 ))
 
 #App callback for world_map_plot
