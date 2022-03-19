@@ -344,12 +344,12 @@ app$layout(dbcContainer(
         dbcRow(
             list(
                 dbcCol(sidebar, 
-                       width=2,
+                       width=3,
                        style = list(
                            'backgroundColor' = '#484848',
                            'border-width' = '0',
                            'padding' = '20px')),
-                dbcCol(cards, width=10)
+                dbcCol(cards, width=9)
             ))
     ),
     style = list("width" = "100%", 
