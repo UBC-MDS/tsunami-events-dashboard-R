@@ -190,18 +190,19 @@ create_scatter_plot <- function(
             size = 1) +
         ggthemes::scale_color_tableau() +
         theme_bw() +
-        theme(legend.title = element_text(size=10),
-              legend.text = element_text(size=8)) +
         scale_y_log10(
             breaks = c(1, 10, 100, 1000, 10000, 100000),
             labels = c("1", "10", "100", "1000", "10000", "100000")
         ) +
         labs(
             x="Earthquake Magnitude (on Richter scale)",
-            y="Total Deaths Recorded per Event \n(Log-Scaled)"
+            y="Total Deaths Recorded per Event (Log-Scaled)"
         ) +
         xlim(5.5, 10) +
-        scale_colour_discrete("Countries (Up to Top 10)")
+        scale_colour_discrete("Countries (Up to Top 10)") +
+        theme(legend.title = element_text(size=7),
+              legend.text = element_text(size=7),
+              axis.title=element_text(size=9))
     
     ggplotly(p, tooltip = 'text')
 
@@ -233,6 +234,7 @@ create_bar_plot <- function(year_value, magnitude_value) {
               axis.ticks.y=element_blank(),
               legend.title = element_text(size=10),
               legend.text = element_text(size=8))
+    
     p <- p + scale_fill_brewer(palette="Blues")
     ggplotly(p, tooltip = 'text')
 }
