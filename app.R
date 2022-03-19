@@ -106,7 +106,7 @@ create_scatter_plot <- function(
         filter(total_deaths > 0) %>%
         select(earthquake_magnitude) %>%
         min()
-    
+
     max_magnitude_deaths <- tsunami_events %>%
         filter(total_deaths > 0) %>%
         select(earthquake_magnitude) %>%
@@ -180,8 +180,8 @@ create_scatter_plot <- function(
                                          "<br>Year:", year,
                                          "<br>Month:", month))))
     }
-    
-    p <- p +
+        
+     p <- p +
         geom_point(
             data = tsunami_events_inactive,
             aes(x=earthquake_magnitude, y=total_deaths),
@@ -204,7 +204,7 @@ create_scatter_plot <- function(
               axis.title=element_text(size=9))
     
     ggplotly(p, tooltip = 'text')
-    
+
 }
 
 create_bar_plot <- function(year_value, magnitude_value) {
