@@ -207,27 +207,21 @@ create_bar_plot <- function(year_value, magnitude_value) {
 }
 
 # Navigation Bar
-navbar = dbcNavbar(
+navbar <- dbcNavbar(
     dbcContainer(
         list(
-            htmlA(
                 dbcRow(
                     list(
-                        dbcCol(dbcNavbarBrand('Tsunami Events Dashboard'))
+                        dbcCol(dbcNavbarBrand("Tsunami Events Dashboard", 
+                                              style = list('font' = 'Helvetica', 'font-size' = '20px',
+                                                           'font-weight' = '500')))
                     ),
-                    align = 'center',
-                    className = 'g-0'
+                    align = "center",
+                    className = "g-0"
                 )
-            ),
-            dbcNavbarToggler(id = 'navbar-toggler', n_clicks = 0),
-            dbcCollapse(
-                id = 'navbar-collapse',
-                is_open = FALSE,
-                navbar = TRUE,
-            )
-        )
+        ), style = list('margin-left' = '0')
     ),
-    color = 'dark',
+    color = "dark",
     dark = TRUE
 )
 
@@ -237,7 +231,7 @@ world_plot_card <- dbcCard(
         htmlH6('Total Tsunami Hits by Country with Origin Points'),
         dccGraph(id = 'map_plot')
     )
-    )
+    ), style = list('padding' = '0'),
 )
 
 scatter_plot_card <- dbcCard(
@@ -250,7 +244,7 @@ scatter_plot_card <- dbcCard(
 
 bar_chart_card <- dbcCard(
     dbcCardBody(list(
-        htmlH6('10 Most Intense Tsunamis by Country'),
+        htmlH6('Top 10 Most Intense Tsunamis'),
         dccGraph(id = 'bar_chart')
     )
     )
@@ -259,12 +253,16 @@ bar_chart_card <- dbcCard(
 # Sidebar
 sidebar <- dbcCol(dbcRow(
     list(
+        htmlP(" "),
+        htmlP(" "),
         htmlH5('Years and Countries Selection',
-               style = list("font" = "Helvetica", "font-size" = "25px",
+               style = list("font" = "Helvetica", "font-size" = "20px",
                             "text-align" = "center")),
+        htmlP(" "),
         htmlHr(),
         htmlH6('Years of Interest (1802 - 2022)',
-               className='form-label'),
+               style = list('font' = 'Helvetica', 'font-size' = '14px',
+                            'text-align' = 'center')),
         dccRangeSlider(
             id = 'year_slider',
             min=min(tsunami_events$year),
@@ -273,16 +271,17 @@ sidebar <- dbcCol(dbcRow(
                         max(tsunami_events$year)),
             allowCross=FALSE,
             marks = list(
-                "1802" = "1800",
-                "1850" = "1850",
-                "1900" = "1900",
-                "1950" = "1950",
-                "2000" = "2000"),
+                "1800" = list('label' = "1800", "style" = list('color' = "#FFFFFF")),
+                "1850" = list('label' = "1850", "style" = list('color' = "#FFFFFF")),
+                "1900" = list('label' = "1900", "style" = list('color' = "#FFFFFF")),
+                "1950" = list('label' = "1950", "style" = list('color' = "#FFFFFF")),
+                "2000" = list('label' = "2000", "style" = list('color' = "#FFFFFF"))),
         ),
-        htmlBr(),
-        htmlBr(),
+        htmlP(" "),
+        htmlP(" "),
         htmlH6('Earthquake Magnitude of Interest',
-               className='form-label'),
+               style = list('font' = 'Helvetica', 'font-size' = '14px',
+                            'text-align' = 'center')),
         dccRangeSlider(
             id = 'magnitude_slider',
             min=min(tsunami_events$earthquake_magnitude),
@@ -291,33 +290,48 @@ sidebar <- dbcCol(dbcRow(
                         max(tsunami_events$earthquake_magnitude)),
             allowCross=FALSE,
             marks = list(
-                "4" = "4",
-                "5" = "5",
-                "6" = "6",
-                "7" = "7",
-                "8" = "8",
-                "9" = "9"),
+                "4" = list('label' = "4", "style" = list('color' = "#FFFFFF")),
+                "5" = list('label' = "5", "style" = list('color' = "#FFFFFF")),
+                "6" = list('label' = "6", "style" = list('color' = "#FFFFFF")),
+                "7" = list('label' = "7", "style" = list('color' = "#FFFFFF")),
+                "8" = list('label' = "8", "style" = list('color' = "#FFFFFF")),
+                "9" = list('label' = "9", "style" = list('color' = "#FFFFFF")))
         ),
-        htmlBr(),
-        htmlBr(),
-        htmlH6('Countries of Interest', className='form-label'),
+        htmlP(" "),
+        htmlP(" "),
+        htmlH6('Countries of Interest', 
+               style = list('font' = 'Helvetica', 'font-size' = '14px',
+                            'text-align' = 'center')),
         dccDropdown(
             id = 'country_select',
             multi = TRUE,
             value = list(),
             options = countries,
-            className = 'text-dark')
+            className = 'text-dark'),
+        htmlBr(),
+        htmlBr(),
+        htmlBr(),
+        htmlHr(),
+        htmlP(
+            "A data visualisation app that allows viewers to observe the number and intensity of tsunamis based on years and countries",
+            style = list('font' = 'Helvetica', 'font-size' = '14px',
+                         'text-align' = 'center'))
     ))
-)
+    )
 
 # Card Arrangement
 
 cards <- list(
-    dbcRow(world_plot_card),
+    dbcRow(world_plot_card,
+           style = list('padding' = '12px')),
     dbcRow(
         list(
-            dbcCol(scatter_plot_card, width = 6),
-            dbcCol(bar_chart_card, width = 6)
+            dbcCol(scatter_plot_card, width = 6,
+                   style = list('padding-right' = '6px',
+                                'padding-bottom' = '6px')),
+            dbcCol(bar_chart_card, width = 6,
+                   style = list('padding-left' = '6px',
+                                'padding-bottom' = '6px'))
         )
     )
 )
@@ -329,11 +343,18 @@ app$layout(dbcContainer(
         navbar,
         dbcRow(
             list(
-                dbcCol(sidebar, width=2),
-                dbcCol(cards, width=10)
+                dbcCol(sidebar, 
+                       width=3,
+                       style = list(
+                           'backgroundColor' = '#484848',
+                           'border-width' = '0',
+                           'padding' = '20px')),
+                dbcCol(cards, width=9)
             ))
     ),
-    style = list("width" = "100%", "max-width" = "100%")
+    style = list("width" = "100%", 
+                 "max-width" = "100%",
+                 'backgroundColor' = '#191919')
 ))
 
 #App callback for world_map_plot
