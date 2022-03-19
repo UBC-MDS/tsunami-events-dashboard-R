@@ -200,8 +200,9 @@ create_scatter_plot <- function(
         xlim(5.5, 10) +
         scale_colour_discrete("Countries (Up to Top 10)") +
         theme(legend.title = element_text(size=7),
-              legend.text = element_text(size=7),
-              axis.title=element_text(size=9))
+              legend.text = element_text(size=6),
+              axis.title = element_text(size=8),
+              axis.text = element_text(size=6))
     
     ggplotly(p, tooltip = 'text')
 
@@ -255,7 +256,14 @@ navbar <- dbcNavbar(
                         'padding-left' = '2rem')
     ),
     color = "dark",
-    dark = TRUE
+    dark = TRUE,
+    style = list(
+        'position' = 'fixed',
+        'top' = '0',
+        'left' = '0',
+        'z-index' = '9999',
+        'width' = '100%'
+    )
 )
 
 # Cards
@@ -349,24 +357,22 @@ sidebar <- dbcCol(dbcRow(
             "A data visualisation app that allows viewers to observe the number and intensity of tsunamis based on years and countries",
             style = list('font' = 'Helvetica', 'font-size' = '14px',
                          'text-align' = 'center'))
-    ))
+    ), style = list('--bs-gutter-x' = '0'))
     )
 
 # Card Arrangement
 
 cards <- list(
     dbcRow(world_plot_card, 
-           style = list('padding' = '12px')
+           style = list('padding' = '12px', '--bs-gutter-x' = '0')
            ),
     dbcRow(
         list(
             dbcCol(scatter_plot_card, width = 6,
-                   style = list('padding-right' = '6px',
-                                'padding-bottom' = '6px')),
+                   style = list('padding' = '12px 6px 12px 12px')),
             dbcCol(bar_chart_card, width = 6,
-                   style = list('padding-left' = '6px',
-                                'padding-bottom' = '6px'))
-        )
+                   style = list('padding' = '12px 12px 12px 6px'))
+        ), style = list('--bs-gutter-x' = '0')
     )
 )
 
@@ -383,13 +389,15 @@ app$layout(dbcContainer(
                            'backgroundColor' = '#484848',
                            'border-width' = '0',
                            'padding' = '20px',
-                           'position' = 'fixed')),
+                           'position' = 'fixed',
+                           'height' = "100%",
+                           'min-height' = 'calc(100vh - 62px)')),
                 dbcCol(width = 3,
                        style = list(
                            'backgroundColor' = '#484848'
                        )),
                 dbcCol(cards, width=9)
-            ))
+            ), style = list('--bs-gutter-x' = '0'))
     ),
     fluid = TRUE,
     style = list("width" = "100%", 
@@ -398,7 +406,8 @@ app$layout(dbcContainer(
                  'background-size' = 'auto',
                  'min-height' = '100vh',
                  'height' = '200%',
-                 'padding' = '0'
+                 'padding' = '0',
+                 'margin-top' = '62px'
                  )
 ))
 
