@@ -165,16 +165,30 @@ create_scatter_plot <- function(
             (earthquake_magnitude < magnitude_start) | 
                 (earthquake_magnitude > magnitude_end))
     
-    p <- ggplot(tsunami_events_active) +
-        geom_point(aes(x = earthquake_magnitude,
-                       y = total_deaths,
-                       color = country,
-                       text = (paste("Country:", country,
-                                     "<br>Location:", location_name,
-                                     "<br>Tsunami Intensity:", tsunami_intensity,
-                                     "<br>Earthquake Magnitude:", earthquake_magnitude,
-                                     "<br>Year:", year,
-                                     "<br>Month:", month)))) +
+    if (nrow(tsunami_events_active) == 0) {
+        p <- ggplot(tsunami_events_inactive) +
+            geom_point(aes(x = earthquake_magnitude,
+                           y = total_deaths,
+                           text = (paste("Country:", country,
+                                         "<br>Location:", location_name,
+                                         "<br>Tsunami Intensity:", tsunami_intensity,
+                                         "<br>Earthquake Magnitude:", earthquake_magnitude,
+                                         "<br>Year:", year,
+                                         "<br>Month:", month))), color = "lightgrey")
+    } else {
+        p <- ggplot(tsunami_events_active) +
+            geom_point(aes(x = earthquake_magnitude,
+                           y = total_deaths,
+                           color = country,
+                           text = (paste("Country:", country,
+                                         "<br>Location:", location_name,
+                                         "<br>Tsunami Intensity:", tsunami_intensity,
+                                         "<br>Earthquake Magnitude:", earthquake_magnitude,
+                                         "<br>Year:", year,
+                                         "<br>Month:", month))))
+    }
+        
+     p <- p +
         geom_point(
             data = tsunami_events_inactive,
             aes(x=earthquake_magnitude, y=total_deaths),
@@ -194,7 +208,6 @@ create_scatter_plot <- function(
         ) +
         xlim(5.5, 10) +
         scale_colour_discrete("Countries (Up to Top 10)")
-    
     
     ggplotly(p, tooltip = 'text')
 
@@ -403,4 +416,4 @@ app$callback(
     }
 )
 
-app$run_server(debug = T)
+app$run_server(debug = F)
